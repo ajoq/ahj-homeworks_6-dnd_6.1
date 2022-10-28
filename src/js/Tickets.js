@@ -27,6 +27,7 @@ export default class Tickets {
         this.cursX = null;
         this.cursY = null;
         this.insertItem = null;
+        this.insertPosition = null;
     }
 
     emptyGhostElement(e) {
@@ -42,19 +43,22 @@ export default class Tickets {
 
         if (!elemBelow.closest('.column-item')) return;
 
-        let position = null;
+
+        if (e.pageY === elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
+            return;
+        }
 
         if (e.pageY < elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
             elemBelow.closest('.column-item').before(this.ghostElEmpty);
-            position = 'before';
+            this.insertPosition = 'before';
         }
 
         if (e.pageY > elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
             elemBelow.closest('.column-item').after(this.ghostElEmpty);
-            position = 'after';
+            this.insertPosition = 'after';
         }
         
-        this.insertItem = {id: +(elemBelow.closest('.column-item').dataset.id), column: elemBelow.closest('.column-items').dataset.id, position};
+        this.insertItem = {id: +(elemBelow.closest('.column-item').dataset.id), column: elemBelow.closest('.column-items').dataset.id, position: this.insertPosition};
     }
 
     ticketGrab(e) {
@@ -108,18 +112,11 @@ export default class Tickets {
         this.ghostEl.remove();
         this.ghostElEmpty.remove();
 
-        this.insertTicket(e);
+        this.insertTicket();
         this.clearVars();
     }
 
-    insertTicket(e) {
-        let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-
-        if (!elemBelow.closest('.column')) {
-            this.ticketLeave();
-            return;
-        }
-
+    insertTicket() {
         const travelerTicket = this.ticketsArr.find(ticket => ticket.id === +(this.draggedEl.dataset.id));
         
         if (this.insertItem.id === travelerTicket.id) {
