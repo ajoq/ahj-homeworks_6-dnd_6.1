@@ -26,7 +26,6 @@ export default class Tickets {
         this.ghostElEmpty = null;
         this.cursX = null;
         this.cursY = null;
-        this.deleteItem = null;
         this.insertItem = null;
     }
 
@@ -36,7 +35,6 @@ export default class Tickets {
         if (!elemBelow.closest('.column') || !elemBelow.closest('.column-items') || elemBelow.closest('.column-item.empty')) return;
 
         if (elemBelow.closest('.column-items').innerHTML === '') {
-            console.log('Пустая ячейка');
             elemBelow.closest('.column-items').append(this.ghostElEmpty);
             this.insertItem = {column: elemBelow.closest('.column-items').dataset.id};
             return;
@@ -50,7 +48,7 @@ export default class Tickets {
             elemBelow.closest('.column-item').before(this.ghostElEmpty);
             position = 'before';
         }
-        
+
         if (e.pageY > elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
             elemBelow.closest('.column-item').after(this.ghostElEmpty);
             position = 'after';
@@ -62,8 +60,7 @@ export default class Tickets {
     ticketGrab(e) {
         e.preventDefault();
         const item = e.target.closest('.column-item');
-        this.deleteItem = item.dataset.id;
-
+        
         if (!item) return;
 
         this.draggedEl = item;
@@ -85,7 +82,7 @@ export default class Tickets {
         this.cursY = e.pageY - this.draggedElCoords.top + 8;
 
         this.emptyGhostElement(e);
-        this.draggedEl.remove();
+        item.remove();
     }
 
     ticketMove(e) {
@@ -103,6 +100,7 @@ export default class Tickets {
         this.ghostEl.remove();
         this.clearVars();
         this.updateList()
+        return;
     }
 
     ticketDrop(e) {
@@ -110,13 +108,25 @@ export default class Tickets {
         this.ghostEl.remove();
         this.ghostElEmpty.remove();
 
-        this.insertTicket();
-
+        this.insertTicket(e);
         this.clearVars();
     }
 
-    insertTicket() {
+    insertTicket(e) {
+        let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+
+        if (!elemBelow.closest('.column')) {
+            this.ticketLeave();
+            return;
+        }
+
         const travelerTicket = this.ticketsArr.find(ticket => ticket.id === +(this.draggedEl.dataset.id));
+        
+        if (this.insertItem.id === travelerTicket.id) {
+            this.updateList();
+            return;
+        }
+
         travelerTicket.column = this.insertItem.column;
 
         const travelerTicketIndex = this.ticketsArr.findIndex(ticket => ticket.id === +(this.draggedEl.dataset.id));
@@ -125,7 +135,7 @@ export default class Tickets {
         if (!this.insertItem.id && !this.insertItem.position) {
             this.ticketsArr.push(travelerTicket);            
         } else {
-            const insertTicketIndex = this.ticketsArr.findIndex(ticket => ticket.id === +(this.insertItem.id));            
+            const insertTicketIndex = this.ticketsArr.findIndex(ticket => ticket.id === +(this.insertItem.id));         
             if (this.insertItem.position === 'before') this.ticketsArr.splice(insertTicketIndex, 0, travelerTicket);
             if (this.insertItem.position === 'after') this.ticketsArr.splice(insertTicketIndex + 1, 0, travelerTicket);
         }
