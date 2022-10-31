@@ -2,6 +2,7 @@ export default class Tickets {
     constructor(tickets) {
         this.ticketsArr = [];
         if (tickets) this.ticketsArr = tickets;
+        this.lastTicketId = this.ticketsArr.length;
         this.clearVars();
     }
 
@@ -13,10 +14,10 @@ export default class Tickets {
     }
 
     events() {
-        this.tasks.addEventListener('pointerdown', (e) => this.ticketGrab(e));
+        this.tasks.addEventListener('pointerdown', (e) => this.clickEvents(e));
         this.tasks.addEventListener('pointermove', (e) => this.ticketMove(e));
         this.tasks.addEventListener('pointerleave', () => this.ticketLeave());
-        this.tasks.addEventListener('pointerup', (e) => this.ticketDrop(e));
+        this.tasks.addEventListener('pointerup', (e) => this.ticketDrop());
     }
 
     clearVars() {
@@ -28,6 +29,68 @@ export default class Tickets {
         this.cursY = null;
         this.insertItem = null;
         this.insertPosition = null;
+    }
+
+    clickEvents(e) {
+        if (e.target.closest('.add-item')) {
+            this.addTicketCancel();
+            this.addAnotherTicket(e);
+            return;
+        }
+        
+        if (e.target.closest('.ticket-form')) return;
+
+        if (e.target.closest('.column-item__delete')) {
+            console.log('Удоли!');
+            return;
+        };
+
+        if (e.target.closest('.column-item')) {
+            this.ticketGrab(e, e.target.closest('.column-item'));
+            return;
+        }
+    }
+
+    addAnotherTicket(e) {
+        const colItems = e.target.closest('.column').querySelector('.column-items');
+
+        const form = document.createElement('form');
+        form.classList.add('ticket-form');
+        form.name = 'ticketForm';
+        form.innerHTML = `
+            <textarea name="ticketFormValue" class="add-area" required></textarea>
+            <div class="buttons">
+                <button class="add-btn" type="submit">Add card</button>
+                <button class="delete-btn">&#10005;</button>
+            </div>            
+        `;
+
+        colItems.after(form);
+
+        const addAnotherCard = e.target.closest('.add-item');
+        addAnotherCard.classList.add('hidden');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addCard(e);
+        }, { once: true });
+    }
+
+    addCard(e) {
+        console.log('Submit!');
+        console.log(e);
+
+        
+    }
+
+    addTicketCancel() {
+        const form = document.querySelector('.ticket-form');
+
+        if (!form) return;
+
+        form.remove();
+        const addAnotherCardButtonHidden = document.querySelector('.add-item.hidden');
+        addAnotherCardButtonHidden.classList.remove('hidden');
     }
 
     emptyGhostElement(e) {
@@ -61,10 +124,10 @@ export default class Tickets {
         this.insertItem = {id: +(elemBelow.closest('.column-item').dataset.id), column: elemBelow.closest('.column-items').dataset.id, position: this.insertPosition};
     }
 
-    ticketGrab(e) {
+    ticketGrab(e, item) {
         e.preventDefault();
-        const item = e.target.closest('.column-item');
-        
+        this.addTicketCancel();
+
         if (!item) return;
 
         this.draggedEl = item;
@@ -107,7 +170,7 @@ export default class Tickets {
         return;
     }
 
-    ticketDrop(e) {
+    ticketDrop() {
         if (!this.draggedEl) return;
         this.ghostEl.remove();
         this.ghostElEmpty.remove();

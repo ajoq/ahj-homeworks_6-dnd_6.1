@@ -46,8 +46,9 @@
     margin: 8px;
     padding: 8px;
     background-color: #fff;
-    cursor: default;
+    cursor: pointer;
     border-radius: 2px;
+    box-shadow: rgba(149, 157, 165, 0.4) 0px 2px;
 }
 
  .column-item:hover {
@@ -101,6 +102,54 @@
 
 .add-item:hover span {
     text-decoration: underline;
+}
+
+.ticket-form {
+    margin: 0 8px 8px;
+}
+
+.add-area {
+    width: 300px;
+    height: 50px;
+    padding: 8px;
+    border: none;
+    border-radius: 2px;
+    resize: none;
+    outline: none;
+    font: inherit;
+    overflow: auto;
+}
+
+.buttons {
+    margin-top: 8px;
+}
+
+.add-btn {
+    background-color: #5ca84d;
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    padding: 8px;
+    font-weight: 600;
+}
+
+.add-btn:hover {
+    cursor: pointer;
+    opacity: .9;
+}
+
+.delete-btn {
+    background-color: inherit;
+    border: none;
+    padding: 4px;
+    font-weight: 600;
+    color: #798c97;
+    cursor: pointer;
+    margin-left: 4px;
+}
+
+.hidden {
+    display: none;
 }
 
 .grabbing {
