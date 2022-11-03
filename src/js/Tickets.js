@@ -57,8 +57,9 @@ export default class Tickets {
         const form = document.createElement('form');
         form.classList.add('ticket-form');
         form.name = 'ticketForm';
+        form.noValidate = true;
         form.innerHTML = `
-            <textarea name="ticketFormValue" class="add-area" required></textarea>
+            <textarea name="ticketFormValue" class="add-area" placeholder="Enter a text for this card" required></textarea>
             <div class="buttons">
                 <button class="add-btn" type="submit">Add card</button>
                 <button class="delete-btn">&#10005;</button>
@@ -72,15 +73,34 @@ export default class Tickets {
 
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            this.addCard(e);
-        }, { once: true });
+
+            if (form.ticketFormValue.value.trim() === '') {
+                this.showError('Поле не может быть пустым', form.ticketFormValue);
+                return;
+            }
+
+            this.addCard(colItems.dataset.id, form.ticketFormValue.value);
+        });
+
+        setTimeout(() => form.ticketFormValue.focus(), 10);
+
+        form.ticketFormValue.addEventListener('focus', () => this.hideError());
+        form.ticketFormValue.addEventListener('keydown', (e) => {
+            if (e.code === 'Enter') {
+                e.preventDefault();
+                // form.submit(); // Не срабатывает обработка submit, заданная выше
+                document.querySelector('.add-btn').click(); // А вот так срабатывает
+            }
+        });
+
     }
 
-    addCard(e) {
-        console.log('Submit!');
-        console.log(e);
+    addCard(column, text) {
+        this.lastTicketId += 1;
+        this.ticketsArr.push({id: this.lastTicketId, column, text});
 
-        
+        this.addTicketCancel();
+        this.updateList();
     }
 
     addTicketCancel() {
@@ -123,6 +143,34 @@ export default class Tickets {
         
         this.insertItem = {id: +(elemBelow.closest('.column-item').dataset.id), column: elemBelow.closest('.column-items').dataset.id, position: this.insertPosition};
     }
+
+    showError(text, input) {
+        const popoverDiv = document.createElement('div');
+        popoverDiv.className = 'popover';
+    
+        const arrowDiv = document.createElement('div');
+        arrowDiv.className = 'arrow';
+    
+        const popoverContent = document.createElement('div');
+        popoverContent.className = 'popover-body';
+        popoverContent.textContent = text;
+    
+        popoverDiv.append(arrowDiv);
+        popoverDiv.append(popoverContent);
+    
+        input.after(popoverDiv);
+
+        popoverDiv.style.top = `${input.getBoundingClientRect().height + 8}px`;
+        popoverDiv.style.left = `${(input.getBoundingClientRect().width / 2) - (popoverDiv.getBoundingClientRect().width / 2)}px`;
+        arrowDiv.style.left = `${(popoverDiv.getBoundingClientRect().width / 2) - (arrowDiv.getBoundingClientRect().width) + 3}px`;
+    
+        popoverDiv.classList.add('popover-visible');
+      }
+
+      hideError() {
+          const popover = document.querySelector('.popover');
+          if (popover) popover.remove();
+      }
 
     ticketGrab(e, item) {
         e.preventDefault();
