@@ -37,11 +37,17 @@ export default class Tickets {
             this.addAnotherTicket(e);
             return;
         }
+
+        if (e.target.closest('.delete-btn')) {
+            e.preventDefault();
+            this.addTicketCancel();
+            return;
+        }
         
         if (e.target.closest('.ticket-form')) return;
 
         if (e.target.closest('.column-item__delete')) {
-            console.log('Удоли!');
+            this.deleteCard(e);
             return;
         };
 
@@ -62,7 +68,7 @@ export default class Tickets {
             <textarea name="ticketFormValue" class="add-area" placeholder="Enter a text for this card" required></textarea>
             <div class="buttons">
                 <button class="add-btn" type="submit">Add card</button>
-                <button class="delete-btn">&#10005;</button>
+                <button class="delete-btn" type="reset">&#10005;</button>
             </div>            
         `;
 
@@ -111,6 +117,13 @@ export default class Tickets {
         form.remove();
         const addAnotherCardButtonHidden = document.querySelector('.add-item.hidden');
         addAnotherCardButtonHidden.classList.remove('hidden');
+    }
+
+    deleteCard(e) {
+        const deleteItemId = +e.target.closest('.column-item').dataset.id;
+        const deleteItemIndex = this.ticketsArr.findIndex((item) => item.id === deleteItemId);
+        this.ticketsArr.splice(deleteItemIndex, 1);
+        this.updateList();
     }
 
     emptyGhostElement(e) {
@@ -183,6 +196,7 @@ export default class Tickets {
 
         this.ghostEl = item.cloneNode(true);
         this.ghostEl.classList.add('dragged');
+        // this.ghostEl.classList.add('grabbing');
         
         this.ghostElEmpty = item.cloneNode(false);
         this.ghostElEmpty.classList.add('empty');
@@ -205,6 +219,8 @@ export default class Tickets {
         if (!this.draggedEl) return;
         this.ghostEl.style.left = `${e.pageX - this.cursX}px`;
         this.ghostEl.style.top = `${e.pageY - this.cursY}px`;
+        // console.log(e.target);
+        // document.body.style.cursor = 'grabbing';
 
         this.emptyGhostElement(e);
     }
