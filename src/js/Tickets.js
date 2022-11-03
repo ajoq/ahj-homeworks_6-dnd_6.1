@@ -9,6 +9,7 @@ export default class Tickets {
     init() {
         this.tasks = document.querySelector('.tasks');
         this.columnItems = document.querySelectorAll('.column-items');
+        if (localStorage.getItem('cards')) this.ticketsArr = JSON.parse(localStorage.getItem('cards'));
         this.events();
         this.updateList();
     }
@@ -287,5 +288,7 @@ export default class Tickets {
 
             col.append(ticketDiv);
         });
+
+        localStorage.setItem('cards', JSON.stringify(this.ticketsArr));
     }
 }

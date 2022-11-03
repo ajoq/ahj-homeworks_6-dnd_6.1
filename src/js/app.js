@@ -49,4 +49,5 @@ const demoContent = [
   ];
 
   const tickets = new Tickets(demoContent);
+//   const tickets = new Tickets();
   tickets.init();
