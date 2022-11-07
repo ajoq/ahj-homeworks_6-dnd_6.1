@@ -2,7 +2,6 @@ export default class Tickets {
     constructor(tickets) {
         this.ticketsArr = [];
         if (tickets) this.ticketsArr = tickets;
-        this.lastTicketId = this.ticketsArr.length;
         this.clearVars();
     }
 
@@ -10,9 +9,9 @@ export default class Tickets {
         this.tasks = document.querySelector('.tasks');
         this.columnItems = document.querySelectorAll('.column-items');
         if (localStorage.getItem('cards')) this.ticketsArr = JSON.parse(localStorage.getItem('cards'));
+        this.lastTicketId = this.ticketsArr[this.ticketsArr.length - 1].id;
         this.events();
-        this.updateList();
-    }
+        this.updateList();    }
 
     events() {
         this.tasks.addEventListener('pointerdown', (e) => this.clickEvents(e));

@@ -46,7 +46,7 @@
     margin: 8px;
     padding: 8px;
     background-color: #fff;
-    cursor: pointer;
+    cursor: grab;
     border-radius: 2px;
     box-shadow: rgba(149, 157, 165, 0.4) 0px 2px;
 }
@@ -79,7 +79,6 @@
     position: absolute;
     z-index: 999;
     pointer-events: none;
-    /* background-color: #798c97; */
 }
 
 .add-item {
