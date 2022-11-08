@@ -9,15 +9,19 @@ export default class Tickets {
         this.tasks = document.querySelector('.tasks');
         this.columnItems = document.querySelectorAll('.column-items');
         if (localStorage.getItem('cards')) this.ticketsArr = JSON.parse(localStorage.getItem('cards'));
-        this.lastTicketId = this.ticketsArr[this.ticketsArr.length - 1].id;
+
+        const sortArr = this.ticketsArr.slice();
+        this.lastTicketId = (sortArr.sort((a, b) =>  a.id - b.id)).at(-1).id;
+
         this.events();
-        this.updateList();    }
+        this.updateList();
+    }
 
     events() {
         this.tasks.addEventListener('pointerdown', (e) => this.clickEvents(e));
         this.tasks.addEventListener('pointermove', (e) => this.ticketMove(e));
         this.tasks.addEventListener('pointerleave', () => this.ticketLeave());
-        this.tasks.addEventListener('pointerup', (e) => this.ticketDrop());
+        this.tasks.addEventListener('pointerup', () => this.ticketDrop());
     }
 
     clearVars() {
@@ -81,7 +85,7 @@ export default class Tickets {
             e.preventDefault();
 
             if (form.ticketFormValue.value.trim() === '') {
-                this.showError('Поле не может быть пустым', form.ticketFormValue);
+                this.showError('The field cannot be empty', form.ticketFormValue);
                 return;
             }
 
@@ -196,12 +200,12 @@ export default class Tickets {
 
         this.ghostEl = item.cloneNode(true);
         this.ghostEl.classList.add('dragged');
-        // this.ghostEl.classList.add('grabbing');
         
         this.ghostElEmpty = item.cloneNode(false);
         this.ghostElEmpty.classList.add('empty');
         this.ghostElEmpty.style.height = this.draggedElCoords.height - 16 + 'px';
         this.ghostElEmpty.style.backgroundColor = '#d5dbde';
+        this.ghostElEmpty.style.cursor = 'grabbing';
 
         document.body.append(this.ghostEl);
 
@@ -219,10 +223,8 @@ export default class Tickets {
         if (!this.draggedEl) return;
         this.ghostEl.style.left = `${e.pageX - this.cursX}px`;
         this.ghostEl.style.top = `${e.pageY - this.cursY}px`;
-        // console.log(e.target);
-        // document.body.style.cursor = 'grabbing';
-
         this.emptyGhostElement(e);
+        e.target.classList.add('grabbing');
     }
 
     ticketLeave() {
@@ -241,6 +243,8 @@ export default class Tickets {
 
         this.insertTicket();
         this.clearVars();
+
+        Array.from(document.querySelectorAll('.grabbing').forEach(tag => tag.classList.remove('grabbing')));
     }
 
     insertTicket() {
