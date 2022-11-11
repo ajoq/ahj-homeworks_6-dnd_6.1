@@ -1,6 +1,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/fho1lhjoa4fcmmps?svg=true)](https://ci.appveyor.com/project/ajoq/ahj-homeworks-6-dnd-6-1)
 
-https://ajoq.github.io/ahj-homeworks-6-dnd-6-1/
+https://ajoq.github.io/ahj-homeworks_6-dnd_6.1/
 
 ### Trello
 
