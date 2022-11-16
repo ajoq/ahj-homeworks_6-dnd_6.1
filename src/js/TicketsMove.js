@@ -82,10 +82,11 @@ export default class TicketsMove {
   }
 
   ticketLeave() {
-    if (!this.draggedEl) return;
+    if (!this.draggedEl) return false;
 
     this.ghostEl.remove();
     this.clearVars();
+    return true;
   }
 
   ticketDrop() {

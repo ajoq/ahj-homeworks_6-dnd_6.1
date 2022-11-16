@@ -1,3 +1,4 @@
+import Modals from './Modals';
 import TicketsMove from './TicketsMove';
 
 export default class Tickets {
@@ -10,7 +11,7 @@ export default class Tickets {
   init() {
     this.tasks = document.querySelector('.tasks');
     this.columnItems = document.querySelectorAll('.column-items');
-    if (localStorage.getItem('cards')) this.ticketsArr = JSON.parse(localStorage.getItem('cards'));
+    // if (localStorage.getItem('cards')) this.ticketsArr = JSON.parse(localStorage.getItem('cards'));
 
     const sortArr = this.ticketsArr.slice();
     this.lastTicketId = (sortArr.sort((a, b) => a.id - b.id)).at(-1).id;
@@ -23,8 +24,10 @@ export default class Tickets {
     this.tasks.addEventListener('pointerdown', (e) => this.clickEvents(e));
     this.tasks.addEventListener('pointermove', (e) => this.ticketsMove.ticketMove(e));
     this.tasks.addEventListener('pointerleave', () => {
-      this.ticketsMove.ticketLeave();
-      this.updateList();
+      if (this.ticketsMove.ticketLeave()) {
+        this.ticketsMove.ticketLeave();
+        this.updateList();
+      }
     });
     this.tasks.addEventListener('pointerup', () => {
       const draggedEl = this.ticketsMove.ticketDrop();
@@ -35,14 +38,14 @@ export default class Tickets {
 
   clickEvents(e) {
     if (e.target.closest('.add-item')) {
-      this.addTicketCancel();
+      Tickets.addAnotherTicketCancel();
       this.addAnotherTicket(e);
       return;
     }
 
     if (e.target.closest('.delete-btn')) {
       e.preventDefault();
-      this.addTicketCancel();
+      Tickets.addAnotherTicketCancel();
       return;
     }
 
@@ -54,7 +57,7 @@ export default class Tickets {
     }
 
     if (e.target.closest('.column-item')) {
-      this.addTicketCancel();
+      Tickets.addAnotherTicketCancel();
       this.ticketsMove.ticketGrab(e, e.target.closest('.column-item'));
     }
   }
@@ -83,7 +86,7 @@ export default class Tickets {
       evt.preventDefault();
 
       if (form.ticketFormValue.value.trim() === '') {
-        this.showError('The field cannot be empty', form.ticketFormValue);
+        Modals.showError('The field cannot be empty', form.ticketFormValue);
         return;
       }
 
@@ -92,7 +95,7 @@ export default class Tickets {
 
     setTimeout(() => form.ticketFormValue.focus(), 10);
 
-    form.ticketFormValue.addEventListener('focus', () => this.hideError());
+    form.ticketFormValue.addEventListener('focus', () => Modals.hideError());
     form.ticketFormValue.addEventListener('keydown', (event) => {
       if (event.code === 'Enter') {
         event.preventDefault();
@@ -102,15 +105,7 @@ export default class Tickets {
     });
   }
 
-  addCard(column, text) {
-    this.lastTicketId += 1;
-    this.ticketsArr.push({ id: this.lastTicketId, column, text });
-
-    this.addTicketCancel();
-    this.updateList();
-  }
-
-  addTicketCancel() {
+  static addAnotherTicketCancel() {
     const form = document.querySelector('.ticket-form');
 
     if (!form) return;
@@ -120,6 +115,14 @@ export default class Tickets {
     addAnotherCardButtonHidden.classList.remove('hidden');
   }
 
+  addCard(column, text) {
+    this.lastTicketId += 1;
+    this.ticketsArr.push({ id: this.lastTicketId, column, text });
+
+    Tickets.addAnotherTicketCancel();
+    this.updateList();
+  }
+
   deleteCard(e) {
     const deleteItemId = +e.target.closest('.column-item').dataset.id;
     const deleteItemIndex = this.ticketsArr.findIndex((item) => item.id === deleteItemId);
@@ -127,40 +130,12 @@ export default class Tickets {
     this.updateList();
   }
 
-  showError(text, input) {
-    const popoverDiv = document.createElement('div');
-    popoverDiv.className = 'popover';
-
-    const arrowDiv = document.createElement('div');
-    arrowDiv.className = 'arrow';
-
-    const popoverContent = document.createElement('div');
-    popoverContent.className = 'popover-body';
-    popoverContent.textContent = text;
-
-    popoverDiv.append(arrowDiv);
-    popoverDiv.append(popoverContent);
-
-    input.after(popoverDiv);
-
-    popoverDiv.style.top = `${input.getBoundingClientRect().height + 8}px`;
-    popoverDiv.style.left = `${(input.getBoundingClientRect().width / 2) - (popoverDiv.getBoundingClientRect().width / 2)}px`;
-    arrowDiv.style.left = `${(popoverDiv.getBoundingClientRect().width / 2) - (arrowDiv.getBoundingClientRect().width) + 3}px`;
-
-    popoverDiv.classList.add('popover-visible');
-  }
-
-  hideError() {
-    const popover = document.querySelector('.popover');
-    if (popover) popover.remove();
-  }
-
   insertTicket(draggedEl) {
     const draggedElRes = draggedEl.draggedElDiv;
     const insertItemRes = draggedEl.insertItemObj;
     const travelerTicket = this.ticketsArr.find((ticket) => ticket.id === +(draggedElRes.dataset.id));
 
-    if (insertItemRes === travelerTicket.id) {
+    if (insertItemRes.id === travelerTicket.id) {
       this.updateList();
       return;
     }
@@ -202,6 +177,6 @@ export default class Tickets {
       col.append(ticketDiv);
     });
 
-    localStorage.setItem('cards', JSON.stringify(this.ticketsArr));
+    // localStorage.setItem('cards', JSON.stringify(this.ticketsArr));
   }
 }
