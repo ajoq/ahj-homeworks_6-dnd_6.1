@@ -1,11 +1,10 @@
-/* eslint-disable class-methods-use-this */
-/* eslint-disable max-len */
+import TicketsMove from './TicketsMove';
 
 export default class Tickets {
   constructor(tickets) {
     this.ticketsArr = [];
     if (tickets) this.ticketsArr = tickets;
-    this.clearVars();
+    this.ticketsMove = new TicketsMove();
   }
 
   init() {
@@ -22,20 +21,16 @@ export default class Tickets {
 
   events() {
     this.tasks.addEventListener('pointerdown', (e) => this.clickEvents(e));
-    this.tasks.addEventListener('pointermove', (e) => this.ticketMove(e));
-    this.tasks.addEventListener('pointerleave', () => this.ticketLeave());
-    this.tasks.addEventListener('pointerup', () => this.ticketDrop());
-  }
-
-  clearVars() {
-    this.draggedEl = null;
-    this.draggedElCoords = null;
-    this.ghostEl = null;
-    this.ghostElEmpty = null;
-    this.cursX = null;
-    this.cursY = null;
-    this.insertItem = null;
-    this.insertPosition = null;
+    this.tasks.addEventListener('pointermove', (e) => this.ticketsMove.ticketMove(e));
+    this.tasks.addEventListener('pointerleave', () => {
+      this.ticketsMove.ticketLeave();
+      this.updateList();
+    });
+    this.tasks.addEventListener('pointerup', () => {
+      const draggedEl = this.ticketsMove.ticketDrop();
+      if (!draggedEl) return;
+      this.insertTicket(draggedEl);
+    });
   }
 
   clickEvents(e) {
@@ -59,7 +54,8 @@ export default class Tickets {
     }
 
     if (e.target.closest('.column-item')) {
-      this.ticketGrab(e, e.target.closest('.column-item'));
+      this.addTicketCancel();
+      this.ticketsMove.ticketGrab(e, e.target.closest('.column-item'));
     }
   }
 
@@ -131,36 +127,6 @@ export default class Tickets {
     this.updateList();
   }
 
-  emptyGhostElement(e) {
-    const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-
-    if (!elemBelow.closest('.column') || !elemBelow.closest('.column-items') || elemBelow.closest('.column-item.empty')) return;
-
-    if (elemBelow.closest('.column-items').innerHTML === '') {
-      elemBelow.closest('.column-items').append(this.ghostElEmpty);
-      this.insertItem = { column: elemBelow.closest('.column-items').dataset.id };
-      return;
-    }
-
-    if (!elemBelow.closest('.column-item')) return;
-
-    if (e.pageY === elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
-      return;
-    }
-
-    if (e.pageY < elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
-      elemBelow.closest('.column-item').before(this.ghostElEmpty);
-      this.insertPosition = 'before';
-    }
-
-    if (e.pageY > elemBelow.getBoundingClientRect().top + elemBelow.getBoundingClientRect().height / 2) {
-      elemBelow.closest('.column-item').after(this.ghostElEmpty);
-      this.insertPosition = 'after';
-    }
-
-    this.insertItem = { id: +(elemBelow.closest('.column-item').dataset.id), column: elemBelow.closest('.column-items').dataset.id, position: this.insertPosition };
-  }
-
   showError(text, input) {
     const popoverDiv = document.createElement('div');
     popoverDiv.className = 'popover';
@@ -189,83 +155,27 @@ export default class Tickets {
     if (popover) popover.remove();
   }
 
-  ticketGrab(e, item) {
-    e.preventDefault();
-    this.addTicketCancel();
+  insertTicket(draggedEl) {
+    const draggedElRes = draggedEl.draggedElDiv;
+    const insertItemRes = draggedEl.insertItemObj;
+    const travelerTicket = this.ticketsArr.find((ticket) => ticket.id === +(draggedElRes.dataset.id));
 
-    if (!item) return;
-
-    this.draggedEl = item;
-    this.draggedElCoords = this.draggedEl.getBoundingClientRect();
-
-    this.ghostEl = item.cloneNode(true);
-    this.ghostEl.classList.add('dragged');
-
-    this.ghostElEmpty = item.cloneNode(false);
-    this.ghostElEmpty.classList.add('empty');
-    this.ghostElEmpty.style.height = `${this.draggedElCoords.height - 16}px`;
-    this.ghostElEmpty.style.backgroundColor = '#d5dbde';
-    this.ghostElEmpty.style.cursor = 'grabbing';
-
-    document.body.append(this.ghostEl);
-
-    this.ghostEl.style.left = `${this.draggedElCoords.left - 8}px`;
-    this.ghostEl.style.top = `${this.draggedElCoords.top - 8}px`;
-    this.cursX = e.pageX - this.draggedElCoords.left + 8;
-    this.cursY = e.pageY - this.draggedElCoords.top + 8;
-
-    this.emptyGhostElement(e);
-    item.remove();
-  }
-
-  ticketMove(e) {
-    e.preventDefault();
-    if (!this.draggedEl) return;
-    this.ghostEl.style.left = `${e.pageX - this.cursX}px`;
-    this.ghostEl.style.top = `${e.pageY - this.cursY}px`;
-    this.emptyGhostElement(e);
-    e.target.classList.add('grabbing');
-  }
-
-  ticketLeave() {
-    if (!this.draggedEl) return;
-
-    this.ghostEl.remove();
-    this.clearVars();
-    this.updateList();
-  }
-
-  ticketDrop() {
-    if (!this.draggedEl) return;
-    this.ghostEl.remove();
-    this.ghostElEmpty.remove();
-
-    this.insertTicket();
-    this.clearVars();
-
-    const deleteGrabbing = Array.from(document.querySelectorAll('.grabbing'));
-    if (deleteGrabbing) deleteGrabbing.forEach((tag) => tag.classList.remove('grabbing'));
-  }
-
-  insertTicket() {
-    const travelerTicket = this.ticketsArr.find((ticket) => ticket.id === +(this.draggedEl.dataset.id));
-
-    if (this.insertItem.id === travelerTicket.id) {
+    if (insertItemRes === travelerTicket.id) {
       this.updateList();
       return;
     }
 
-    travelerTicket.column = this.insertItem.column;
+    travelerTicket.column = insertItemRes.column;
 
-    const travelerTicketIndex = this.ticketsArr.findIndex((ticket) => ticket.id === +(this.draggedEl.dataset.id));
+    const travelerTicketIndex = this.ticketsArr.findIndex((ticket) => ticket.id === +(draggedElRes.dataset.id));
     this.ticketsArr.splice(travelerTicketIndex, 1);
 
-    if (!this.insertItem.id && !this.insertItem.position) {
+    if (!insertItemRes.id && !insertItemRes.position) {
       this.ticketsArr.push(travelerTicket);
     } else {
-      const insertTicketIndex = this.ticketsArr.findIndex((ticket) => ticket.id === +(this.insertItem.id));
-      if (this.insertItem.position === 'before') this.ticketsArr.splice(insertTicketIndex, 0, travelerTicket);
-      if (this.insertItem.position === 'after') this.ticketsArr.splice(insertTicketIndex + 1, 0, travelerTicket);
+      const insertTicketIndex = this.ticketsArr.findIndex((ticket) => ticket.id === +(insertItemRes.id));
+      if (insertItemRes.position === 'before') this.ticketsArr.splice(insertTicketIndex, 0, travelerTicket);
+      if (insertItemRes.position === 'after') this.ticketsArr.splice(insertTicketIndex + 1, 0, travelerTicket);
     }
 
     this.updateList();
