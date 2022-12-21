@@ -16,12 +16,13 @@ export default class TicketsMove {
 
   emptyGhostElement(e) {
     const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+    const closestColumnItems = elemBelow.closest('.column-items');
 
-    if (!elemBelow.closest('.column') || !elemBelow.closest('.column-items') || elemBelow.closest('.column-item.empty')) return;
+    if (!elemBelow.closest('.column') || !closestColumnItems || elemBelow.closest('.column-item.empty')) return;
 
-    if (elemBelow.closest('.column-items').innerHTML === '') {
-      elemBelow.closest('.column-items').append(this.ghostElEmpty);
-      this.insertItem = { column: elemBelow.closest('.column-items').dataset.id };
+    if (closestColumnItems.innerHTML === '') {
+        closestColumnItems.append(this.ghostElEmpty);
+      this.insertItem = { column: closestColumnItems.dataset.id };
       return;
     }
 
@@ -41,7 +42,7 @@ export default class TicketsMove {
       this.insertPosition = 'after';
     }
 
-    this.insertItem = { id: +(elemBelow.closest('.column-item').dataset.id), column: elemBelow.closest('.column-items').dataset.id, position: this.insertPosition };
+    this.insertItem = { id: +(elemBelow.closest('.column-item').dataset.id), column: closestColumnItems.dataset.id, position: this.insertPosition };
   }
 
   ticketGrab(e, item) {
@@ -59,7 +60,6 @@ export default class TicketsMove {
     this.ghostElEmpty.classList.add('empty');
     this.ghostElEmpty.style.height = `${this.draggedElCoords.height - 16}px`;
     this.ghostElEmpty.style.backgroundColor = '#d5dbde';
-    this.ghostElEmpty.style.cursor = 'grabbing';
 
     document.body.append(this.ghostEl);
 
@@ -84,6 +84,8 @@ export default class TicketsMove {
   ticketLeave() {
     if (!this.draggedEl) return false;
 
+    this.grabbingRemove();
+
     this.ghostEl.remove();
     this.clearVars();
     return true;
@@ -97,9 +99,13 @@ export default class TicketsMove {
     const draggedElResult = { draggedElDiv: this.draggedEl, insertItemObj: this.insertItem };
     this.clearVars();
 
-    const deleteGrabbing = Array.from(document.querySelectorAll('.grabbing'));
-    if (deleteGrabbing) deleteGrabbing.forEach((tag) => tag.classList.remove('grabbing'));
+    this.grabbingRemove();
 
     return draggedElResult;
+  }
+
+  grabbingRemove() {
+    const deleteGrabbing = Array.from(document.querySelectorAll('.grabbing'));
+    if (deleteGrabbing) deleteGrabbing.forEach((tag) => tag.classList.remove('grabbing'));
   }
 }
