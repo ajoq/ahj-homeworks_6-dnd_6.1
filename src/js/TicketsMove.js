@@ -21,7 +21,7 @@ export default class TicketsMove {
     if (!elemBelow.closest('.column') || !closestColumnItems || elemBelow.closest('.column-item.empty')) return;
 
     if (closestColumnItems.innerHTML === '') {
-        closestColumnItems.append(this.ghostElEmpty);
+      closestColumnItems.append(this.ghostElEmpty);
       this.insertItem = { column: closestColumnItems.dataset.id };
       return;
     }
@@ -84,7 +84,7 @@ export default class TicketsMove {
   ticketLeave() {
     if (!this.draggedEl) return false;
 
-    this.grabbingRemove();
+    TicketsMove.grabbingRemove();
 
     this.ghostEl.remove();
     this.clearVars();
@@ -99,12 +99,12 @@ export default class TicketsMove {
     const draggedElResult = { draggedElDiv: this.draggedEl, insertItemObj: this.insertItem };
     this.clearVars();
 
-    this.grabbingRemove();
+    TicketsMove.grabbingRemove();
 
     return draggedElResult;
   }
 
-  grabbingRemove() {
+  static grabbingRemove() {
     const deleteGrabbing = Array.from(document.querySelectorAll('.grabbing'));
     if (deleteGrabbing) deleteGrabbing.forEach((tag) => tag.classList.remove('grabbing'));
   }
